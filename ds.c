@@ -51,13 +51,16 @@ Node *create_animal_node(const char *animal) {
  */
 void free_tree(Node *node) {
     // TODO: Implement this function
-    /*
     if (node == NULL) {
         return;
-    } else {
-         
-    }
-    */
+    } 
+    Node* left = node->yes;
+    Node* right = node->no;
+    free(node->text);
+    node->text = NULL;
+    free(node)
+    free_tree(left); //YES = LEFT and NO = RIGHT
+    free_tree(right);
 }
 
 /* TODO 4: Implement count_nodes (recursive)
