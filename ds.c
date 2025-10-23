@@ -7,7 +7,7 @@
 /* ========== Node Functions ========== */
 
 /* TODO 1: Implement create_question_node
- * - Allocate memory for a Node structure
+ * - Allocate memory for a Node structure 
  * - Use strdup() to copy the question string (heap allocation)
  * - Set isQuestion to 1
  * - Initialize yes and no pointers to NULL
@@ -15,7 +15,13 @@
  */
 Node *create_question_node(const char *question) {
     // TODO: Implement this function
-    return NULL;
+    Node* intialNode = (Node*)malloc(sizeof(Node*));
+    intialNode->text = strdup(question);
+    initialNode->isQuestion = 1;
+    initialNode->yes = NULL;
+    initialNode->no = NULL;
+
+    return intialNode;
 }
 
 /* TODO 2: Implement create_animal_node
@@ -24,6 +30,13 @@ Node *create_question_node(const char *question) {
  */
 Node *create_animal_node(const char *animal) {
     // TODO: Implement this function
+    Node* intialNode = (Node*)malloc(sizeof(Node*));
+    intialNode->text = strdup(question);
+    initialNode->isQuestion = 0;
+    initialNode->yes = NULL;
+    initialNode->no = NULL;
+
+    return intialNode;
     return NULL;
 }
 
@@ -38,6 +51,11 @@ Node *create_animal_node(const char *animal) {
  */
 void free_tree(Node *node) {
     // TODO: Implement this function
+    if (node == NULL) {
+        return;
+    } else {
+         
+    }
 }
 
 /* TODO 4: Implement count_nodes (recursive)
