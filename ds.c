@@ -31,7 +31,7 @@ Node *create_question_node(const char *question) {
 Node *create_animal_node(const char *animal) {
     // TODO: Implement this function
     Node* initialNode = (Node*)malloc(sizeof(Node*));
-    strcpy(initialNode->text, strdup(question));
+    strcpy(initialNode->text, strdup(animal));
     initialNode->isQuestion = 0;
     initialNode->yes = NULL;
     initialNode->no = NULL;
