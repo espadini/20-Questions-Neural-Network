@@ -15,8 +15,14 @@
  */
 Node *create_question_node(const char *question) {
     // TODO: Implement this function
-    Node* initialNode = (Node*)malloc(sizeof(Node*));
-    strcpy(initialNode->text, strdup(question));
+    if(question == NULL) {return NULL;}
+    Node* initialNode = malloc(sizeof(Node));
+    if(initialNode == NULL) {return NULL;}
+    initialNode->text = strdup(question);
+    if(initialNode->text == NULL) {
+        free(initialNode);
+        return NULL;
+    }
     initialNode->isQuestion = 1;
     initialNode->yes = NULL;
     initialNode->no = NULL;
@@ -30,8 +36,14 @@ Node *create_question_node(const char *question) {
  */
 Node *create_animal_node(const char *animal) {
     // TODO: Implement this function
-    Node* initialNode = (Node*)malloc(sizeof(Node*));
-    strcpy(initialNode->text, strdup(animal));
+    if(animal == NULL) {return NULL;}
+    Node* initialNode = malloc(sizeof(Node));
+    if(initialNode == NULL) {return NULL;}
+    initialNode->text = strdup(animal);
+    if(initialNode->text == NULL) {
+        free(initialNode);
+        return NULL;
+    }
     initialNode->isQuestion = 0;
     initialNode->yes = NULL;
     initialNode->no = NULL;
@@ -50,17 +62,13 @@ Node *create_animal_node(const char *animal) {
  */
 void free_tree(Node *node) {
     // TODO: Implement this function
-    if (node == NULL) {
-        return;
-    } 
-    Node* left = node->yes;
-    Node* right = node->no;
+    
+    if (node == NULL) {return;} 
+    free_tree(node->yes); //YES = LEFT and NO = RIGHT
+    free_tree(node->no);
     free(node->text);
-    node->text = NULL;
     free(node);
-    free_tree(left); //YES = LEFT and NO = RIGHT
-    free_tree(right);
-}
+} 
 
 /* TODO 4: Implement count_nodes (recursive)
  * - Base case: if root is NULL, return 0
@@ -71,8 +79,7 @@ int count_nodes(Node *root) {
     if(root == NULL) {
         return 0;
     }
-
-    return 0;
+    return (1 + count_nodes(root->yes) + count_nodes(root->no));
 }
 
 /* ========== Frame Stack (for iterative tree traversal) ========== */
