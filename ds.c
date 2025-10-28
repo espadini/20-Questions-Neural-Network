@@ -16,7 +16,7 @@
 Node *create_question_node(const char *question) {
     // TODO: Implement this function
     Node* initialNode = (Node*)malloc(sizeof(Node*));
-    initialNode->text = strdup(question);
+    strcpy(initialNode->text, strdup(question));
     initialNode->isQuestion = 1;
     initialNode->yes = NULL;
     initialNode->no = NULL;
@@ -31,7 +31,7 @@ Node *create_question_node(const char *question) {
 Node *create_animal_node(const char *animal) {
     // TODO: Implement this function
     Node* initialNode = (Node*)malloc(sizeof(Node*));
-    initialNode->text = strdup(question);
+    strcpy(initialNode->text, strdup(question));
     initialNode->isQuestion = 0;
     initialNode->yes = NULL;
     initialNode->no = NULL;
@@ -57,7 +57,7 @@ void free_tree(Node *node) {
     Node* right = node->no;
     free(node->text);
     node->text = NULL;
-    free(node)
+    free(node);
     free_tree(left); //YES = LEFT and NO = RIGHT
     free_tree(right);
 }
