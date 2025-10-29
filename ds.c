@@ -91,6 +91,14 @@ int count_nodes(Node *root) {
  */
 void fs_init(FrameStack *s) {
     // TODO: Implement this function
+    if(s == NULL) {return;}
+    s->frames = malloc(16 * sizeof(Frame));
+    s->capacity = 16;
+    s->size = 0;
+    for (int i = 0; i < 16; i++) {
+        s->frames[i].node = NULL;
+        s->frames[i].answeredYes = -1;
+    }
 }
 
 /* TODO 6: Implement fs_push
@@ -101,6 +109,14 @@ void fs_init(FrameStack *s) {
  */
 void fs_push(FrameStack *s, Node *node, int answeredYes) {
     // TODO: Implement this function
+    if(s == NULL || s->frames == NULL) {return;}
+    if(s->size >= s->capacity) {
+        s->capacity = 2 * s->capacity;
+        s->frames = realloc(s->frames, s->capacity * sizeof(Frame));
+    }
+    s->frames[s->size].node = node;
+    s->frames[s->size].answeredYes = answeredYes;
+    s->size = s->size + 1; 
 }
 
 /* TODO 7: Implement fs_pop
@@ -109,9 +125,11 @@ void fs_push(FrameStack *s, Node *node, int answeredYes) {
  * Note: No need to check if empty - caller should use fs_empty() first
  */
 Frame fs_pop(FrameStack *s) {
-    Frame dummy = {NULL, -1};
     // TODO: Implement this function
-    return dummy;
+    Frame dummy = {NULL, -1};
+    if(s == NULL || s->size == 0) {return dummy;}
+    s->size = s->size - 1;
+    return s->frames[s->size];
 }
 
 /* TODO 8: Implement fs_empty
@@ -119,7 +137,8 @@ Frame fs_pop(FrameStack *s) {
  */
 int fs_empty(FrameStack *s) {
     // TODO: Implement this function
-    return 1;
+    if(s == NULL || s->size == 0) {return 1;}
+    else {return 0;}
 }
 
 /* TODO 9: Implement fs_free
@@ -129,6 +148,11 @@ int fs_empty(FrameStack *s) {
  */
 void fs_free(FrameStack *s) {
     // TODO: Implement this function
+    if(s == NULL) {return;}
+    free(s->frames);
+    s->frames = NULL;
+    s->size = 0;
+    s->capacity = 0;
 }
 
 /* ========== Edit Stack (for undo/redo) ========== */
