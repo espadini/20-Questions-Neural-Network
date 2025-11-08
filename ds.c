@@ -234,6 +234,10 @@ void free_edit_stack(EditStack *s) {
  */
 void q_init(Queue *q) {
     // TODO: Implement this function
+    if(q == NULL) {return;}
+    q->front = NULL;
+    q->rear = NULL;
+    q->size = 0;
 }
 
 /* TODO 16: Implement q_enqueue
@@ -249,6 +253,19 @@ void q_init(Queue *q) {
  */
 void q_enqueue(Queue *q, Node *node, int id) {
     // TODO: Implement this function
+    if(q == NULL) {return;}
+    QueueNode* new = malloc(sizeof(QueueNode));
+    new->treeNode = node;
+    new->id = id;
+    new->next = NULL;
+    if(q->rear == NULL) {
+        q->front = new;
+        q->rear = new;
+    } else {
+        q->rear->next = new;
+        q->rear = new;
+    }
+    q->size = q->size + 1;
 }
 
 /* TODO 17: Implement q_dequeue
@@ -263,7 +280,16 @@ void q_enqueue(Queue *q, Node *node, int id) {
  */
 int q_dequeue(Queue *q, Node **node, int *id) {
     // TODO: Implement this function
-    return 0;
+    if(q == NULL) {return;}
+    if(q->front == NULL) {return 0;}
+    *node = q->front->treeNode;
+    *id = q->front->id;
+    QueueNode* temp = q->front;
+    q->front = q->front->next;
+    if(q->front == NULL) {q->rear = NULL;}
+    free(temp);
+    q->size = q->size - 1;
+    return 1;
 }
 
 /* TODO 18: Implement q_empty
@@ -271,7 +297,8 @@ int q_dequeue(Queue *q, Node **node, int *id) {
  */
 int q_empty(Queue *q) {
     // TODO: Implement this function
-    return 1;
+    if(q == NULL || q->size == 0) {return 1;}
+    return 0;
 }
 
 /* TODO 19: Implement q_free
@@ -280,6 +307,12 @@ int q_empty(Queue *q) {
  */
 void q_free(Queue *q) {
     // TODO: Implement this function
+    if(q == NULL) {return;}
+    Node* dummyNode;
+    int dummyId;
+    while(!q_empty(q)) {
+        q_dequeue(q, &dummyNode, &dummyId);
+    }
 }
 
 /* ========== Hash Table ========== */
@@ -304,7 +337,24 @@ void q_free(Queue *q) {
  */
 char *canonicalize(const char *s) {
     // TODO: Implement this function
-    return NULL;
+    char* result  = malloc((strlen(s) + 1) * sizeof(char));
+    int j = 0;
+    for(int i = 0; i < strlen(s); i++) {
+        if(s[i] >= 65 && s[i] <= 90) {
+            result[j] = s[i] + 32;
+            j++;
+        }
+        else if((s[i] >= 97 && s[i] <= 122) || (s[i] >= 48 && s[i] <= 57)) {
+            result[j] = s[i];
+            j++;
+        }
+        else if(s[i] == ' ') {
+            result[j] = '_';
+            j++;
+        }
+    }
+    result[j] = '\0';
+    return result;
 }
 
 /* TODO 21: Implement h_hash (djb2 algorithm)
