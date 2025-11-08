@@ -365,7 +365,11 @@ char *canonicalize(const char *s) {
  */
 unsigned h_hash(const char *s) {
     // TODO: Implement this function
-    return 0;
+    unsigned int hash = 5381;
+    for (int i = 0; i < strlen(s); i++) {
+        hash = ((hash << 5) + hash) + s[i];
+    }
+    return hash;
 }
 
 /* TODO 22: Implement h_init
@@ -375,6 +379,10 @@ unsigned h_hash(const char *s) {
  */
 void h_init(Hash *h, int nbuckets) {
     // TODO: Implement this function
+    if(h == NULL) {return;}
+    h->buckets = calloc(nbuckets, sizeof(Entry*));
+    h->nbuckets = nbuckets;
+    h->size = 0;
 }
 
 /* TODO 23: Implement h_put
@@ -385,7 +393,7 @@ void h_init(Hash *h, int nbuckets) {
  * 2. Search the chain at buckets[idx] for an entry with matching key
  * 3. If found:
  *    - Check if animalId already exists in the vals list
- *    - If yes, return 0 (no change)
+ *    - If yes, return 0 (no change) 
  *    - If no, add animalId to vals.ids array (resize if needed), return 1
  * 4. If not found:
  *    - Create new Entry with strdup(key)
@@ -397,7 +405,56 @@ void h_init(Hash *h, int nbuckets) {
  */
 int h_put(Hash *h, const char *key, int animalId) {
     // TODO: Implement this function
-    return 0;
+    int idx = h_hash(key) % h->nbuckets;
+    int newCapacity;
+    Entry* current = h->buckets[idx];
+    while(current != NULL) {
+        if(!strcmp(current->key, key)) {
+            for(int i = 0; i < current->vals.count; i++) { 
+                if(current->vals.ids[i] == animalId){
+                    return 0;
+                }
+            }
+            if(current->vals.capacity == current->vals.count) {
+                if(current->vals.capacity == 0) {
+                    newCapacity = 4;
+                    current->vals.capacity = 4;
+                }
+                else {newCapacity = 2 * current->vals.capacity;}
+                current->vals.ids = realloc(current->vals.ids, newCapacity * sizeof(int));
+                if(current->vals.ids == NULL) {return 0;}
+                current->vals.capacity = newCapacity;
+            }
+            current->vals.ids[current->vals.count] = animalId;
+            current->vals.count = current->vals.count + 1;
+            return 1;
+        }
+        current = current->next;
+    }
+    Entry* new = malloc(sizeof(Entry));
+    if(new == NULL) {return 0;}
+    h->size = h->size + 1;
+    new->key = strdup(key);
+    if(new->key == NULL) {
+        free(new);
+        h->size--;
+        return 0;
+    }
+    new->vals.capacity = 4;
+    new->vals.ids = malloc(new->vals.capacity * sizeof(int));
+    if(new->vals.ids == NULL) {
+        free(new->key);
+        free(new);
+        h->size--;
+        return 0;
+    }
+    new->vals.ids[0] = animalId;
+    new->vals.count = 1;
+    Entry* temp = h->buckets[idx]; //old head
+    h->buckets[idx] = new;
+    new->next = temp;
+
+    return 1;
 }
 
 /* TODO 24: Implement h_contains
@@ -411,6 +468,18 @@ int h_put(Hash *h, const char *key, int animalId) {
  */
 int h_contains(const Hash *h, const char *key, int animalId) {
     // TODO: Implement this function
+    int idx = h_hash(key) % h->nbuckets;
+    Entry* current = h->buckets[idx];
+    while(current != NULL) {
+        if(!strcmp(current->key, key)) {
+            for(int i = 0; i < current->vals.count; i++) { 
+                if(current->vals.ids[i] == animalId){
+                    return 1;
+                }
+            }
+        }
+        current = current->next;
+    }
     return 0;
 }
 
@@ -431,6 +500,15 @@ int h_contains(const Hash *h, const char *key, int animalId) {
  */
 int *h_get_ids(const Hash *h, const char *key, int *outCount) {
     // TODO: Implement this function
+    int idx = h_hash(key) % h->nbuckets;
+    Entry* current = h->buckets[idx];
+    while(current != NULL) {
+        if(!strcmp(current->key, key)) {
+            *outCount = current->vals.count;
+            return current->vals.ids;
+        }
+        current = current->next;
+    }
     *outCount = 0;
     return NULL;
 }
@@ -450,4 +528,18 @@ int *h_get_ids(const Hash *h, const char *key, int *outCount) {
  */
 void h_free(Hash *h) {
     // TODO: Implement this function
+    for(int i = 0; i < h->nbuckets; i++) {
+        Entry* current = h->buckets[i];
+        while(current != NULL) {
+            Entry* next = current->next;
+            free(current->key);
+            free(current->vals.ids);
+            free(current);
+            current = next;
+        }
+
+    }
+    free(h->buckets);
+    h->buckets = NULL;
+    h->size = 0;
 }
