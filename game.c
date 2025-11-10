@@ -216,7 +216,15 @@ void play_game() {
  */
 int undo_last_edit() {
     // TODO: Implement this function
-    return 0;
+    if(es_empty(&g_undo)) {return 0;}
+    Edit curr = es_pop(&g_undo);
+
+    if(curr.parent == NULL) {g_root = curr.oldLeaf;}
+    else if(curr.wasYesChild) {curr.parent->yes = curr.oldLeaf;}
+    else {curr.parent->no = curr.oldLeaf;}
+
+    es_push(&g_redo, curr);
+    return 1;
 }
 
 /* TODO 33: Implement redo_last_edit
@@ -237,5 +245,13 @@ int undo_last_edit() {
  */
 int redo_last_edit() {
     // TODO: Implement this function
-    return 0;
+    if(es_empty(&g_redo)) {return 0;}
+    Edit curr = es_pop(&g_redo);
+
+    if(curr.parent == NULL) {g_root = curr.newQuestion;}
+    else if(curr.wasYesChild) {curr.parent->yes = curr.newQuestion;}
+    else {curr.parent->no = curr.newQuestion;}
+
+    es_push(&g_undo, curr);
+    return 1;
 }
