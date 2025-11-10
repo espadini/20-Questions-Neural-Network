@@ -30,7 +30,36 @@ extern Node *g_root;
 int check_integrity() {
     // TODO: Implement this function
     // Use the Queue functions you implemented
-    return 1;
+    if(g_root == NULL) {return 1;}
+    Queue* q = malloc(sizeof(Queue));
+    q_init(q);
+    int id = 0;
+    q_enqueue(q, g_root, id);
+    int valid = 1;
+    Node* dequeueNode;
+    int dequeueId;
+    while(!q_empty(q)) {
+        q_dequeue(q, &dequeueNode, &dequeueId);
+        if(dequeueNode->isQuestion) {
+            if(dequeueNode->yes == NULL || dequeueNode->no == NULL) {
+                valid = 0;
+                break;
+            } else {
+                q_enqueue(q, dequeueNode->yes, ++id);
+                q_enqueue(q, dequeueNode->no, ++id);
+            }
+        }
+        else {
+            if(dequeueNode->yes != NULL || dequeueNode->no != NULL) {
+                valid = 0;
+                break;
+            }
+        }
+    }
+    q_free(q);
+    free(q);
+    q = NULL;
+    return valid;
 }
 
 typedef struct PathNode {

@@ -140,9 +140,9 @@ int save_tree(const char *filename) {
     uint32_t version_val = VERSION;
     uint32_t count_val = (uint32_t)nodeCount;
 
-    if (fwrite(&magic_val, sizeof(uint32_t), 1, fileptr) != 1) goto save_error;
-    if (fwrite(&version_val, sizeof(uint32_t), 1, fileptr) != 1) goto save_error;
-    if (fwrite(&count_val, sizeof(uint32_t), 1, fileptr) != 1) goto save_error;
+    if (fwrite(&magic_val, sizeof(uint32_t), 1, fileptr) != 1) {goto save_error;}
+    if (fwrite(&version_val, sizeof(uint32_t), 1, fileptr) != 1) {goto save_error;}
+    if (fwrite(&count_val, sizeof(uint32_t), 1, fileptr) != 1) {goto save_error;}
 
     /* --- Write nodes --- */
     for (int i = 0; i < nodeCount; i++) {
@@ -153,13 +153,13 @@ int save_tree(const char *filename) {
         int32_t yesId = find_id_for_node(mapping, nodeCount, node->yes);
         int32_t noId  = find_id_for_node(mapping, nodeCount, node->no);
 
-        if (fwrite(&is_q, sizeof(uint8_t), 1, fileptr) != 1) goto save_error;
-        if (fwrite(&textLen, sizeof(uint32_t), 1, fileptr) != 1) goto save_error;
+        if (fwrite(&is_q, sizeof(uint8_t), 1, fileptr) != 1) {goto save_error;}
+        if (fwrite(&textLen, sizeof(uint32_t), 1, fileptr) != 1) {goto save_error;}
         if (textLen > 0) {
-            if (fwrite(node->text, sizeof(char), textLen, fileptr) != textLen) goto save_error;
+            if (fwrite(node->text, sizeof(char), textLen, fileptr) != textLen) {goto save_error;}
         }
-        if (fwrite(&yesId, sizeof(int32_t), 1, fileptr) != 1) goto save_error;
-        if (fwrite(&noId,  sizeof(int32_t), 1, fileptr) != 1) goto save_error;
+        if (fwrite(&yesId, sizeof(int32_t), 1, fileptr) != 1) {goto save_error;}
+        if (fwrite(&noId,  sizeof(int32_t), 1, fileptr) != 1) {goto save_error;}
     }
 
     success = 1;

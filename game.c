@@ -65,8 +65,133 @@ void play_game() {
     fs_init(&stack);
 
     fs_push(&stack, g_root, -1);
-    
-    // TODO: Your implementation here
+    Node* parent = NULL;
+    int parentAnswer = -1;
+    int id = 0;
+
+    while(!(fs_empty(&stack))){
+        Frame curr = fs_pop(&stack);
+        if(curr.node->isQuestion) {
+            move(5, 0); // Move cursor to row 5, col 0
+            clrtoeol(); // Clear to end of line
+            move(6, 0); // Move cursor to row 6, col 0
+            clrtoeol(); // Clear to end of line
+
+            // Display the question (at row 5, col 2)
+            mvprintw(5, 2, "%s", curr.node->text);
+            // Display the prompt (at row 6, col 2)
+            mvprintw(6, 2, "Enter (y/n): ");
+            refresh(); // Show the changes
+            char ans = getch();
+
+            parent = curr.node;
+
+            if (ans == 'Y' || ans == 'y') {
+                fs_push(&stack, curr.node->yes, 1);
+                parentAnswer = 1;
+            }
+            else {
+                fs_push(&stack, curr.node->no, 0);
+                parentAnswer = 0;
+            }
+        }
+        if(!(curr.node->isQuestion)) {
+            move(5, 0); // Move cursor to row 5, col 0
+            clrtoeol(); // Clear to end of line
+            move(6, 0); // Move cursor to row 6, col 0
+            clrtoeol(); // Clear to end of line
+
+            // Display the question (at row 5, col 2)
+            mvprintw(5, 2, "Is it a %s?", curr.node->text);
+            // Display the prompt (at row 6, col 2)
+            mvprintw(6, 2, "Enter (y/n): ");
+            refresh(); // Show the changes
+            char ans = getch();
+
+
+            if (ans == 'Y' || ans == 'y') {
+                move(5, 0); // Move cursor to row 5, col 0
+                clrtoeol(); // Clear to end of line
+                move(6, 0); // Move cursor to row 6, col 0
+                clrtoeol(); // Clear to end of line
+                mvprintw(5, 2, "I got the animal right!");
+                mvprintw(6, 2, "Press any key to continue..."); 
+                refresh();
+                
+                getch(); // <-- ADD THIS LINE to wait for input
+                break;
+            }
+            else {
+                char animalName[100];
+                char question[500];
+
+                move(5, 0); // Move cursor to row 5, col 0
+                clrtoeol(); // Clear to end of line
+                move(6, 0); // Move cursor to row 6, col 0
+                clrtoeol(); // Clear to end of line
+                mvprintw(5, 2, "I give up! What's your animal?");
+                mvprintw(6, 2, "Name: ");
+                refresh();
+                echo();
+                mvgetstr(6, 8, animalName);
+                noecho();
+
+                move(8, 0);
+                clrtoeol();
+                move(9, 0);
+                clrtoeol();
+                mvprintw(8, 2, "What's your animal's distinguishing question?");
+                mvprintw(9, 2, "Question: ");
+                refresh();
+                echo();
+                mvgetstr(9, 12, question);
+                noecho();
+
+                move(11, 0);
+                clrtoeol();
+                move(12, 0);
+                clrtoeol();
+                mvprintw(11, 2, "What's the answer to this quesiton? (y/n)");
+                mvprintw(12, 2, "Answer: ");
+                refresh();
+                ans = getch();
+
+                // iv. Create new question node and new animal node
+                Node* newQuestion = create_question_node(question);
+                Node* newAnimal = create_animal_node(animalName);
+                Node* oldAnimal = curr.node; // This is the node we're replacing
+                
+                // v. Link them
+                if (ans == 'Y' || ans == 'y') {
+                    newQuestion->yes = newAnimal;
+                    newQuestion->no = oldAnimal;
+                } else {
+                    newQuestion->no = newAnimal;
+                    newQuestion->yes = oldAnimal;
+                }
+
+                if(parent == NULL) {g_root = newQuestion;}
+                else if(parentAnswer == 1) {parent->yes = newQuestion;}
+                else {parent->no = newQuestion;}
+
+                Edit newEdit;
+                newEdit.type = EDIT_INSERT_SPLIT; 
+                newEdit.parent = parent;        
+                newEdit.oldLeaf = oldAnimal;   
+                newEdit.newQuestion = newQuestion;
+                newEdit.newLeaf = newAnimal;
+                newEdit.wasYesChild = parentAnswer;
+
+                es_push(&g_undo, newEdit);
+                es_clear(&g_redo);
+                
+                char* canonicalizedQ = canonicalize(question);
+                h_put(&g_index, canonicalizedQ, id++);
+                free(canonicalizedQ);
+            }
+
+        }
+    }
     
     fs_free(&stack);
 }
