@@ -63,6 +63,8 @@ void play_game() {
     
     FrameStack stack;
     fs_init(&stack);
+
+    fs_push(&stack, g_root, -1);
     
     // TODO: Your implementation here
     

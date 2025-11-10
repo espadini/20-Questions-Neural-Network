@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g -std=c99
+CFLAGS = -Wall -Wextra -g -std=gnu99
 LDFLAGS = -lncurses
 
 # Source files for main program
