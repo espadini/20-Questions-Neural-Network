@@ -234,7 +234,7 @@ save_error:
  * - If any read fails or validation fails, goto load_error
  * - In load_error: free all allocated memory and return 0
  */
-int load_tree(const char *filename) {
+int load_tree(const char *filename) { //gemini helped debug this function.
     // Pointers to be allocated and used during loading
     FILE *fileptr = NULL;
     Node **nodes = NULL;           // array to store newly created Node pointers
