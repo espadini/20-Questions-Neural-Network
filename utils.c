@@ -28,37 +28,50 @@ extern Node *g_root;
  * 5. Free queue and return valid
  */
 int check_integrity() {
-    // TODO: Implement this function
-    // Use the Queue functions you implemented
-    if(g_root == NULL) {return 1;}
-    Queue* q = malloc(sizeof(Queue));
+    // Empty tree is considered valid
+    if (g_root == NULL) {
+        return 1;
+    }
+
+    // Allocate and initialize a Queue for BFS
+    Queue *q = malloc(sizeof(Queue));
     q_init(q);
-    int id = 0;
-    q_enqueue(q, g_root, id);
-    int valid = 1;
-    Node* dequeueNode;
+
+    int id = 0; // id values enqueued are unused by integrity logic but required by Queue API
+    q_enqueue(q, g_root, id); // start BFS from root
+
+    int valid = 1; // assume valid until a rule violation is found
+    Node *dequeueNode;
     int dequeueId;
-    while(!q_empty(q)) {
+
+    // BFS loop: check each node's invariants
+    while (!q_empty(q)) {
         q_dequeue(q, &dequeueNode, &dequeueId);
-        if(dequeueNode->isQuestion) {
-            if(dequeueNode->yes == NULL || dequeueNode->no == NULL) {
-                valid = 0;
+
+        if (dequeueNode->isQuestion) {
+            // Question nodes must have both children
+            if (dequeueNode->yes == NULL || dequeueNode->no == NULL) {
+                valid = 0; // found invalid question node
                 break;
             } else {
+                // Enqueue both children for further checking
                 q_enqueue(q, dequeueNode->yes, ++id);
                 q_enqueue(q, dequeueNode->no, ++id);
             }
-        }
-        else {
-            if(dequeueNode->yes != NULL || dequeueNode->no != NULL) {
-                valid = 0;
+        } else {
+            // Leaf nodes must not have children
+            if (dequeueNode->yes != NULL || dequeueNode->no != NULL) {
+                valid = 0; // found invalid leaf node
                 break;
             }
         }
     }
+
+    // Clean up queue resources
     q_free(q);
     free(q);
     q = NULL;
+
     return valid;
 }
 
@@ -89,9 +102,21 @@ typedef struct PathNode {
  */
 void find_shortest_path(const char *animal1, const char *animal2) {
     if (g_root == NULL) return;
-    
-    // TODO: Implement this function (OPTIONAL CHALLENGE)
-    // This is complex and requires careful path tracking
-    
+    // This optional function is not implemented in the starter code.
+    // The goal is to perform two BFS searches that track parents and the
+    // edge direction (yes/no) used to reach each node, then find the
+    // lowest common ancestor (LCA) of the two animal leaf nodes. Once the
+    // LCA is identified you can print the questions along the branches
+    // from the LCA to each animal to show the distinguishing path.
+
+    // Implementation notes / high-level plan (not executed here):
+    // 1. BFS the tree storing for each visited Node a PathNode containing
+    //    pointer to parent PathNode and viaYes flag.
+    // 2. When animals are found, follow parent pointers to build their
+    //    full paths to root.
+    // 3. Compare the two paths to find the first common node (LCA).
+    // 4. Print the sequence of questions from LCA to each animal which
+    //    distinguishes them.
+
     printf("find_shortest_path not yet implemented\n");
 }

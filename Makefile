@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g -std=gnu99
-LDFLAGS = -lncurses
+CFLAGS = -Wall -Wextra -g -std=gnu99 -fsanitize=address,undefined
+LDFLAGS = -lncurses -fsanitize=address,undefined
 
 # Source files for main program
 SOURCES = main.c ds.c game.c persist.c utils.c visualize.c

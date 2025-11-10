@@ -61,81 +61,100 @@ void play_game() {
     // Loop until stack empty or guess is correct
     // Handle question nodes and leaf nodes differently
     
+    // Initialize a FrameStack to perform iterative traversal
     FrameStack stack;
     fs_init(&stack);
 
+    // Push the root node as the first frame; answeredYes = -1 means no parent answer
     fs_push(&stack, g_root, -1);
-    Node* parent = NULL;
-    int parentAnswer = -1;
+
+    // Track parent pointer and whether the current node is the parent's yes child
+    Node *parent = NULL;
+    int parentAnswer = -1; // 1 = yes child, 0 = no child
+
+    // id is used to insert into the index hash; start from 0
     int id = 0;
 
-    while(!(fs_empty(&stack))){
+    // Iterative traversal: continue until the stack is empty
+    while (!fs_empty(&stack)) {
+        // Pop the next frame to visit
         Frame curr = fs_pop(&stack);
-        if(curr.node->isQuestion) {
-            move(5, 0); // Move cursor to row 5, col 0
-            clrtoeol(); // Clear to end of line
-            move(6, 0); // Move cursor to row 6, col 0
-            clrtoeol(); // Clear to end of line
 
-            // Display the question (at row 5, col 2)
+        // Handle question nodes: prompt the user and push the chosen child
+        if (curr.node->isQuestion) {
+            // Clear the area and write to for a clean UI
+            move(5, 0);
+            clrtoeol();
+            move(6, 0);
+            clrtoeol();
+
+            // Display the question text and prompt for yes/no
             mvprintw(5, 2, "%s", curr.node->text);
-            // Display the prompt (at row 6, col 2)
             mvprintw(6, 2, "Enter (y/n): ");
-            refresh(); // Show the changes
+            refresh();
+
+            // Read a single character answer (no echo)
             char ans = getch();
 
+            // Remember the parent node for potential learning phase
             parent = curr.node;
 
+            // If user answered yes, push the 'yes' child; otherwise push 'no'
             if (ans == 'Y' || ans == 'y') {
                 fs_push(&stack, curr.node->yes, 1);
                 parentAnswer = 1;
-            }
-            else {
+            } else {
                 fs_push(&stack, curr.node->no, 0);
                 parentAnswer = 0;
             }
         }
-        if(!(curr.node->isQuestion)) {
-            move(5, 0); // Move cursor to row 5, col 0
-            clrtoeol(); // Clear to end of line
-            move(6, 0); // Move cursor to row 6, col 0
-            clrtoeol(); // Clear to end of line
 
-            // Display the question (at row 5, col 2)
+        // Handle leaf nodes (animals)
+        if (!curr.node->isQuestion) {
+            // Clear UI lines used for question/answer
+            move(5, 0);
+            clrtoeol();
+            move(6, 0);
+            clrtoeol();
+
+            // Ask the user whether the guessed animal is correct
             mvprintw(5, 2, "Is it a %s?", curr.node->text);
-            // Display the prompt (at row 6, col 2)
             mvprintw(6, 2, "Enter (y/n): ");
-            refresh(); // Show the changes
+            refresh();
             char ans = getch();
 
-
             if (ans == 'Y' || ans == 'y') {
-                move(5, 0); // Move cursor to row 5, col 0
-                clrtoeol(); // Clear to end of line
-                move(6, 0); // Move cursor to row 6, col 0
-                clrtoeol(); // Clear to end of line
+                // Correct guess: show a confirmation and wait for key press
+                move(5, 0);
+                clrtoeol();
+                move(6, 0);
+                clrtoeol();
                 mvprintw(5, 2, "I got the animal right!");
-                mvprintw(6, 2, "Press any key to continue..."); 
+                mvprintw(6, 2, "Press any key to continue...");
                 refresh();
-                
-                getch(); // <-- ADD THIS LINE to wait for input
-                break;
-            }
-            else {
+
+                // Wait for the user to acknowledge
+                getch();
+                break; // game round ends
+            } else {
+                // Learning phase: ask user for the correct animal name
                 char animalName[100];
                 char question[500];
 
-                move(5, 0); // Move cursor to row 5, col 0
-                clrtoeol(); // Clear to end of line
-                move(6, 0); // Move cursor to row 6, col 0
-                clrtoeol(); // Clear to end of line
+                move(5, 0);
+                clrtoeol();
+                move(6, 0);
+                clrtoeol();
                 mvprintw(5, 2, "I give up! What's your animal?");
                 mvprintw(6, 2, "Name: ");
                 refresh();
+
+                // Enable echo to read a string line from the user
                 echo();
-                mvgetstr(6, 8, animalName);
+                mvgetstr(6, 8, animalName); // read up to newline
                 noecho();
 
+                // Ask for the distinguishing question for the new animal
                 move(8, 0);
                 clrtoeol();
                 move(9, 0);
@@ -147,6 +166,7 @@ void play_game() {
                 mvgetstr(9, 12, question);
                 noecho();
 
+                // Ask for the correct answer to the new question for the new animal
                 move(11, 0);
                 clrtoeol();
                 move(12, 0);
@@ -156,12 +176,13 @@ void play_game() {
                 refresh();
                 ans = getch();
 
-                // iv. Create new question node and new animal node
-                Node* newQuestion = create_question_node(question);
-                Node* newAnimal = create_animal_node(animalName);
-                Node* oldAnimal = curr.node; // This is the node we're replacing
-                
-                // v. Link them
+                // Create new nodes: a question node and a leaf for the new animal
+                Node *newQuestion = create_question_node(question);
+                Node *newAnimal = create_animal_node(animalName);
+                Node *oldAnimal = curr.node; // leaf we failed to guess
+
+                // Link the new question node: place newAnimal on the branch
+                // that corresponds to the user's answer to the distinguishing question
                 if (ans == 'Y' || ans == 'y') {
                     newQuestion->yes = newAnimal;
                     newQuestion->no = oldAnimal;
@@ -170,29 +191,41 @@ void play_game() {
                     newQuestion->yes = oldAnimal;
                 }
 
-                if(parent == NULL) {g_root = newQuestion;}
-                else if(parentAnswer == 1) {parent->yes = newQuestion;}
-                else {parent->no = newQuestion;}
+                // Attach the newly-created question node to the parent in the tree
+                if (parent == NULL) {
+                    // We replaced the root directly
+                    g_root = newQuestion;
+                } else if (parentAnswer == 1) {
+                    // Parent's yes pointer should point to the new question
+                    parent->yes = newQuestion;
+                } else {
+                    // Parent's no pointer should point to the new question
+                    parent->no = newQuestion;
+                }
 
+                // Create an Edit record so the change can be undone
                 Edit newEdit;
-                newEdit.type = EDIT_INSERT_SPLIT; 
-                newEdit.parent = parent;        
-                newEdit.oldLeaf = oldAnimal;   
+                newEdit.type = EDIT_INSERT_SPLIT;
+                newEdit.parent = parent;
+                newEdit.oldLeaf = oldAnimal;
                 newEdit.newQuestion = newQuestion;
                 newEdit.newLeaf = newAnimal;
                 newEdit.wasYesChild = parentAnswer;
 
+                // Push the edit onto the undo stack and clear redo stack
                 es_push(&g_undo, newEdit);
                 es_clear(&g_redo);
-                
-                char* canonicalizedQ = canonicalize(question);
+
+                // Insert the canonicalized question into the index for searching
+                char *canonicalizedQ = canonicalize(question);
                 h_put(&g_index, canonicalizedQ, id++);
                 free(canonicalizedQ);
             }
 
         }
     }
-    
+
+    // Free stack resources when done
     fs_free(&stack);
 }
 
@@ -215,14 +248,25 @@ void play_game() {
  * Note: We don't free newQuestion/newLeaf because they might be redone
  */
 int undo_last_edit() {
-    // TODO: Implement this function
-    if(es_empty(&g_undo)) {return 0;}
+    // If there are no edits to undo, return 0
+    if (es_empty(&g_undo)) {
+        return 0;
+    }
+    // Pop the most recent edit from the undo stack
     Edit curr = es_pop(&g_undo);
-
-    if(curr.parent == NULL) {g_root = curr.oldLeaf;}
-    else if(curr.wasYesChild) {curr.parent->yes = curr.oldLeaf;}
-    else {curr.parent->no = curr.oldLeaf;}
-
+    // Restore the tree to the state before the edit by reconnecting the
+    // parent's pointer (or the root) back to the old leaf node
+    if (curr.parent == NULL) {
+        // Edit changed the root; restore old leaf as root
+        g_root = curr.oldLeaf;
+    } else if (curr.wasYesChild) {
+        // Parent's yes pointer should point back to the old leaf
+        curr.parent->yes = curr.oldLeaf;
+    } else {
+        // Parent's no pointer should point back to the old leaf
+        curr.parent->no = curr.oldLeaf;
+    }
+    // Push the undone edit onto the redo stack so it can be redone later
     es_push(&g_redo, curr);
     return 1;
 }
@@ -244,14 +288,23 @@ int undo_last_edit() {
  * 5. Return 1
  */
 int redo_last_edit() {
-    // TODO: Implement this function
-    if(es_empty(&g_redo)) {return 0;}
+    // If there is nothing to redo, return failure
+    if (es_empty(&g_redo)) {
+        return 0;
+    }
+    // Pop the most recent undone edit
     Edit curr = es_pop(&g_redo);
-
-    if(curr.parent == NULL) {g_root = curr.newQuestion;}
-    else if(curr.wasYesChild) {curr.parent->yes = curr.newQuestion;}
-    else {curr.parent->no = curr.newQuestion;}
-
+    // Re-apply the change: attach the new question node at the parent's spot
+    if (curr.parent == NULL) {
+        // The edit replaced the root, so restore newQuestion as root
+        g_root = curr.newQuestion;
+    //Same cases logic as undo
+    } else if (curr.wasYesChild) { 
+        curr.parent->yes = curr.newQuestion;
+    } else {
+        curr.parent->no = curr.newQuestion;
+    }
+    // Push the edit back onto the undo stack
     es_push(&g_undo, curr);
     return 1;
 }
